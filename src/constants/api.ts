@@ -1,0 +1,4 @@
+export const API_BASE_URL = "https://rent-car-pkl.linkbee.id";
+
+export const API_TOKEN =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI5ODc0NmQyMC1lZTZjLTQzMjUtYWEwOC1lYzg2N2IxODM0ZmUiLCJlbWFpbCI6ImFkbWluQHJlbnRjYXIuY29tIiwiaWF0IjoxNzg2NTkzMjkxLCJleHAiOjE3ODY1OTQxOTF9.PTE9bK67NotMErTwY26JQnfJZqn53SxqtFknUHArhDo";
