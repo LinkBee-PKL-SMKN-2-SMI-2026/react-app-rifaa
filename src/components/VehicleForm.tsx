@@ -1,50 +1,67 @@
+import { useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import type { Vehicle } from "../types/Vehicle";
+import axios from "axios";
+import { API_BASE_URL, API_TOKEN } from "../constants/api";
 
 interface VehicleFormInputs {
   name: string;
   brand: string;
   plateNumber: string;
   transmission: "MANUAL" | "AUTOMATIC";
-  category: string;
+  categoryId: string;
 }
 
 interface VehicleFormProps {
-  onAddVehicle: (newVehicle: Vehicle) => void;
+  onSuccess: () => void;
 }
 
-const buildNewVehicle = (data: VehicleFormInputs): Vehicle => {
-  const now = new Date().toISOString();
-  return {
-    id: crypto.randomUUID(),
-    name: data.name,
-    brand: data.brand,
-    model: data.brand,
-    year: new Date().getFullYear(),
-    plateNumber: data.plateNumber,
-    categoryId: "",
-    transmission: data.transmission,
-    fuelType: "-",
-    seatingCapacity: 0,
-    imageUrl: null,
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-    category: { id: "", name: data.category },
-  };
-};
+const CATEGORIES = [
+  { id: "43ab2065-f9eb-447f-9da5-51b21fd78057", name: "Elf" },
+  { id: "c3cd4e36-8262-44b2-b45e-42608274612b", name: "Hiace" },
+  { id: "38c39f36-bc42-4d60-b33e-63c31be26320", name: "MPV" },
+  { id: "239c63b2-a2e8-41cf-ad50-d0dd2fc44ed8", name: "Pickup" },
+  { id: "04cc14b0-6964-497a-b30f-57e37f5c26d6", name: "SUV" },
+  { id: "7fdb7fdb-4a93-4c78-858b-32c6457aa15b", name: "Sedan" },
+];
 
-export default function VehicleForm({ onAddVehicle }: VehicleFormProps) {
+const buildCreatePayload = (data: VehicleFormInputs) => ({
+  name: data.name,
+  brand: data.brand,
+  model: data.brand,
+  year: new Date().getFullYear(),
+  plateNumber: data.plateNumber,
+  transmission: data.transmission,
+  categoryId: data.categoryId,
+  fuelType: "Bensin",
+  seatingCapacity: 4,
+  isActive: true,
+});
+
+export default function VehicleForm({ onSuccess }: VehicleFormProps) {
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<VehicleFormInputs>();
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const onSubmit: SubmitHandler<VehicleFormInputs> = (data) => {
-    onAddVehicle(buildNewVehicle(data));
-    reset();
+  const onSubmit: SubmitHandler<VehicleFormInputs> = async (data) => {
+    setIsSubmitting(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/vehicles`, buildCreatePayload(data), {
+        headers: { Authorization: `Bearer ${API_TOKEN}` },
+      });
+      reset();
+      onSuccess();
+    } catch (err) {
+      const message = axios.isAxiosError(err)
+        ? err.response?.data?.message
+        : undefined;
+      alert(message ?? "Gagal menyimpan kendaraan.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const inputClass = (hasError: boolean) =>
@@ -55,7 +72,7 @@ export default function VehicleForm({ onAddVehicle }: VehicleFormProps) {
       onSubmit={handleSubmit(onSubmit)}
       className="p-6 border rounded-xl shadow-md bg-white max-w-md h-fit"
     >
-      <h2 className="text-xl font-bold mb-4">Tambah Kendaraan Sementara</h2>
+      <h2 className="text-xl font-bold mb-4">Tambah Kendaraan</h2>
       <div className="mb-4">
         <label className="block text-sm font-medium mb-1">Nama Kendaraan</label>
         <input
@@ -105,20 +122,27 @@ export default function VehicleForm({ onAddVehicle }: VehicleFormProps) {
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium mb-1">Kategori</label>
-        <input
-          {...register("category", { required: "Kategori wajib diisi!" })}
-          className={inputClass(!!errors.category)}
-          placeholder="Misal: SUV"
-        />
-        {errors.category && (
-          <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>
+        <select
+          {...register("categoryId", { required: "Kategori wajib dipilih!" })}
+          className={inputClass(!!errors.categoryId)}
+        >
+          <option value="">Pilih Kategori</option>
+          {CATEGORIES.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
+        </select>
+        {errors.categoryId && (
+          <p className="text-red-500 text-xs mt-1">{errors.categoryId.message}</p>
         )}
       </div>
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700"
+        disabled={isSubmitting}
+        className="w-full bg-blue-600 text-white font-bold py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Tambah Kendaraan
+        {isSubmitting ? "Menyimpan..." : "Tambah Kendaraan"}
       </button>
     </form>
   );
