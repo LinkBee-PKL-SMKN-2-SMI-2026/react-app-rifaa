@@ -1,44 +1,44 @@
 import "./App.css";
-import { useState } from "react";
-import EmployeeCard from "./components/EmployeeCard";
-import EmployeeForm from "./components/EmployeeForm";
-import type { Employee } from "./types/Employee";
-
-const initialEmployees: Employee[] = [
-  { id: 1, name: "Budi Santoso", role: "Frontend Developer", isActive: true, department: "IT" },
-  { id: 2, name: "Siti Aminah", role: "UI/UX Designer", isActive: true, department: "Marketing" },
-  { id: 3, name: "Agus Pratama", role: "Backend Developer", isActive: false, department: "Operations" },
-  { id: 4, name: "Dewi Lestari", role: "HR Specialist", isActive: true, department: "HR" },
-  { id: 5, name: "Rizky Ramadhan", role: "Finance Analyst", isActive: true, department: "Finance" },
-  { id: 6, name: "Putri Ayu", role: "Operations Manager", isActive: false, department: "OB" },
-];
+import { useEffect, useState } from "react";
+import axios from "axios";
+import VehicleCard from "./components/VehicleCard";
+import VehicleForm from "./components/VehicleForm";
+import type { Vehicle } from "./types/Vehicle";
 
 export default function App() {
-  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
 
-  const handleAddEmployee = (newEmployee: Employee) => {
-    setEmployees((prevEmployees) => [...prevEmployees, newEmployee]);
+  useEffect(() => {
+    axios
+      .get("https://rent-car-pkl.linkbee.id/api/vehicles")
+      .then((response) => setVehicles(response.data.data))
+      .catch(() => setError("Gagal memuat data kendaraan dari server."))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const handleAddVehicle = (newVehicle: Vehicle) => {
+    setVehicles((prevVehicles) => [newVehicle, ...prevVehicles]);
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">
-        Daftar Pegawai PKL
+        Katalog Kendaraan
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <EmployeeForm onAddEmployee={handleAddEmployee} />
-        {/* Grid Layout dengan Tailwind */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Mapping Data Array ke Komponen */}
-          {employees.map((employee) => (
-            <EmployeeCard
-              key={employee.id}
-              name={employee.name}
-              role={employee.role}
-              isActive={employee.isActive}
-              department={employee.department}
-            />
-          ))}
+        <VehicleForm onAddVehicle={handleAddVehicle} />
+        <div>
+          {isLoading && (
+            <p className="text-gray-600 mb-4">Memuat data kendaraan...</p>
+          )}
+          {error && <p className="text-red-500 mb-4">{error}</p>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {vehicles.map((vehicle) => (
+              <VehicleCard key={vehicle.id} vehicle={vehicle} />
+            ))}
+          </div>
         </div>
       </div>
     </div>
