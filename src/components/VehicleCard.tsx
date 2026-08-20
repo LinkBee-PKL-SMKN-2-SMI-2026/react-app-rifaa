@@ -2,11 +2,19 @@ import type { Vehicle } from "../types/Vehicle";
 
 interface VehicleCardProps {
   vehicle: Vehicle;
+  onDelete: (vehicle: Vehicle) => void;
 }
 
-export default function VehicleCard({ vehicle }: VehicleCardProps) {
+export default function VehicleCard({ vehicle, onDelete }: VehicleCardProps) {
   return (
-    <div className="border p-4 rounded-lg shadow-md bg-white">
+    <div className="relative border p-4 rounded-lg shadow-md bg-white">
+      <button
+        type="button"
+        onClick={() => onDelete(vehicle)}
+        className="absolute top-2 right-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded hover:bg-red-600"
+      >
+        Hapus
+      </button>
       <h2 className="text-xl font-bold text-gray-800">{vehicle.name}</h2>
       <p className="text-gray-600">{vehicle.brand}</p>
       <p className="text-gray-600">{vehicle.plateNumber}</p>
